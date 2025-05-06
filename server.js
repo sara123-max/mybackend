@@ -53,6 +53,21 @@ app.use('/api/catalogue-timestamps', timeCatalogueRoutes);
 const catalogueDeleteProductsRoute = require('./routes/catalogueDeleteProductsRoute');
 
 const catalogueDeleteRoute = require('./routes/catalogueDeleteRoute');
+const authRoutes = require('./routes/authRoute');
+
+const salepointRoutes = require('./routes/grossiste/salepointCreateRoute');
+
+
+const salePointRoutesselect = require('./routes/grossiste/salePointSelectRoute');
+
+const pointVenteDeleteRoute = require('./routes/grossiste/salepointDeleteRoute');
+
+
+
+
+const pointVenteUpdateRoute = require('./routes/grossiste/salepointUpdateRoute');
+
+
 
 // Middleware setup
 app.use(cors());
@@ -137,6 +152,17 @@ app.use('/api/catalogues', catalogueAddProductsRoute);
 app.use('/api/catalogues', catalogueDeleteProductsRoute);
 
 app.use('/api/catalogues', catalogueDeleteRoute);
+
+app.use('/api/auth', authRoutes);
+
+
+
+app.use('/api/salepoint', salepointRoutes);
+app.use('/api', salePointRoutesselect);
+
+app.use('/api/pointvente', pointVenteDeleteRoute);
+
+app.use('/api/pointvente', pointVenteUpdateRoute);
 
 // Start the server
 const PORT = process.env.PORT || 5000;

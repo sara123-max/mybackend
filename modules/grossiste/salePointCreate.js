@@ -1,10 +1,9 @@
-
-const db = require("../db"); // Import database connection
+const db = require("../../db"); // Import database connection
 const bcrypt = require("bcryptjs"); // Import bcrypt for password hashing
 
-const Grossiste = {
-    // Create a new grossiste (user + grossiste entry)
-    createGrossiste: (userData, image, callback) => {
+const SalePoint = {
+    // Create a new sale point (user + sale_point entry)
+    createSalePoint: (userData, image, callback) => {
         // Check if username or email already exists
         const checkSql = `SELECT * FROM user WHERE username = ? OR email = ?`;
         db.query(checkSql, [userData.username, userData.email], (err, results) => {
@@ -18,12 +17,12 @@ const Grossiste = {
             bcrypt.hash(userData.password, 10, (err, hashedPassword) => {
                 if (err) return callback(err, null);
 
-                // Insert user with image in the first position
+                // Insert user with image
                 const sql = `INSERT INTO user (image, username, password, name, email, telephone_number, role, region, address)  
-                             VALUES (?, ?, ?, ?, ?, ?, 'grossiste', ?, ?)`;  // Role is always 'grossiste'
+                             VALUES (?, ?, ?, ?, ?, ?, 'point_vente', ?, ?)`;  // Role is always 'point_vente'
                 
                 db.query(sql, [
-                    image, // Now image is in the first position
+                    image,
                     userData.username,
                     hashedPassword,
                     userData.name,
@@ -36,11 +35,11 @@ const Grossiste = {
 
                     const userId = result.insertId; // Get auto-generated user ID
 
-                    // Insert into grossiste table
-                    const grossisteSql = `INSERT INTO grossiste (user_id) VALUES (?)`;
-                    db.query(grossisteSql, [userId], (err, grossisteResult) => {
+                    // Insert into sale_point table
+                    const salePointSql = `INSERT INTO sale_point (user_id, store_hours) VALUES (?, ?)`;
+                    db.query(salePointSql, [userId, userData.store_hours], (err, salePointResult) => {
                         if (err) return callback(err, null);
-                        callback(null, { userId, role: "grossiste" }); // Return success response
+                        callback(null, { userId, role: "point_vente" }); // Return success response
                     });
                 });
             });
@@ -48,6 +47,4 @@ const Grossiste = {
     }
 };
 
-module.exports = Grossiste;
-
-
+module.exports = SalePoint;

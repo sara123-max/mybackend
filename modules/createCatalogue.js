@@ -1,66 +1,8 @@
 // modules/createCatalogue.js
-/*const db = require('../db');
-
-class CreateCatalogue {
-  static createCatalogueWithProducts(name, productIds, callback) {
-    // Start transaction
-    db.beginTransaction((err) => {
-      if (err) return callback(err);
-
-      // 1. Insert the catalogue
-      db.query(
-        'INSERT INTO catalogue (name) VALUES (?)',
-        [name],
-        (err, catalogueResult) => {
-          if (err) {
-            return db.rollback(() => callback(err));
-          }
-
-          const catalogueId = catalogueResult.insertId;
-
-          // 2. Insert catalogue-product relationships if productIds exist
-          if (productIds && productIds.length > 0) {
-            const values = productIds.map(productId => [catalogueId, productId]);
-            
-            db.query(
-              'INSERT INTO catalogue_product (catalogue_id, product_id) VALUES ?',
-              [values],
-              (err) => {
-                if (err) {
-                  return db.rollback(() => callback(err));
-                }
-
-                // Commit transaction if everything succeeded
-                db.commit((err) => {
-                  if (err) {
-                    return db.rollback(() => callback(err));
-                  }
-                  callback(null, { id: catalogueId, name, productIds });
-                });
-              }
-            );
-          } else {
-            // Commit transaction if no products to insert
-            db.commit((err) => {
-              if (err) {
-                return db.rollback(() => callback(err));
-              }
-              callback(null, { id: catalogueId, name, productIds: [] });
-            });
-          }
-        }
-      );
-    });
-  }
-}
-
-module.exports = CreateCatalogue;*/
-
-// modules/createCatalogue.js
 const db = require('../db');
 
 class CreateCatalogue {
-  static createCatalogueWithProducts(name, productIds, callback) {
+  static createCatalogueWithProducts(name, productIds, grossisteIds, callback) {
     db.beginTransaction((err) => {
       if (err) return callback(err);
 
@@ -69,41 +11,40 @@ class CreateCatalogue {
         'INSERT INTO catalogue (name) VALUES (?)',
         [name],
         (err, catalogueResult) => {
-          if (err) {
-            return db.rollback(() => callback(err));
-          }
+          if (err) return db.rollback(() => callback(err));
 
           const catalogueId = catalogueResult.insertId;
 
-          // 2. Insert catalogue-product relationships if productIds exist
-          if (productIds?.length > 0) {
-            const values = productIds.map(productId => [catalogueId, productId]);
-            
-            db.query(
-              'INSERT INTO catalogue_product (catalogue_id, product_id) VALUES ?',
-              [values],
-              (err) => {
-                if (err) {
-                  return db.rollback(() => callback(err));
-                }
+          // 2. Insert catalogue-grossiste relationships (if grossisteIds exist)
+          if (grossisteIds?.length > 0) {
+            const grossisteValues = grossisteIds.map(grossisteId => [catalogueId, grossisteId]);
 
-                // Commit transaction if everything succeeded
-                db.commit((err) => {
-                  if (err) {
-                    return db.rollback(() => callback(err));
-                  }
-                  callback(null, catalogueId); // Just return the ID
-                });
+            db.query(
+              'INSERT INTO catalogue_grossiste (catalogue_id, grossiste_user_id) VALUES ?',
+              [grossisteValues],
+              (err) => {
+                if (err) return db.rollback(() => callback(err));
+
+                // 3. Insert catalogue-product relationships (if productIds exist)
+                if (productIds?.length > 0) {
+                  const productValues = productIds.map(productId => [catalogueId, productId]);
+
+                  db.query(
+                    'INSERT INTO catalogue_product (catalogue_id, product_id) VALUES ?',
+                    [productValues],
+                    (err) => {
+                      if (err) return db.rollback(() => callback(err));
+                      db.commit((err) => callback(err, catalogueId));
+                    }
+                  );
+                } else {
+                  db.commit((err) => callback(err, catalogueId));
+                }
               }
             );
           } else {
-            // Commit transaction if no products to insert
-            db.commit((err) => {
-              if (err) {
-                return db.rollback(() => callback(err));
-              }
-              callback(null, catalogueId); // Just return the ID
-            });
+            // No grossistes assigned? Just commit.
+            db.commit((err) => callback(err, catalogueId));
           }
         }
       );
