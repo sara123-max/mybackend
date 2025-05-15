@@ -68,6 +68,16 @@ const pointVenteDeleteRoute = require('./routes/grossiste/salepointDeleteRoute')
 const pointVenteUpdateRoute = require('./routes/grossiste/salepointUpdateRoute');
 
 
+// 
+const selectCatalogueGrossisteRoutes = require('./routes/grossiste/select_catalogue_grossiste');
+
+
+// create catalogue for salepoint (role:grossiste)
+const catalogueForSalepointsRoutes = require('./routes/grossiste/catalogueForSalepointsRoutes');
+//select catalogues directed to salepoints mage by grossiste(role:gorssiste) 
+const catalogueSalepointRoutes = require('./routes/grossiste/select_catalogue_salepoint_route');
+//
+const favorisRoutes = require('./routes/grossiste/favorisRoute');
 
 // Middleware setup
 app.use(cors());
@@ -164,6 +174,18 @@ app.use('/api/pointvente', pointVenteDeleteRoute);
 
 app.use('/api/pointvente', pointVenteUpdateRoute);
 
+app.use('/api/grossiste', selectCatalogueGrossisteRoutes);
+
+
+// Add with other app.use() routes
+app.use('/api/grossiste', catalogueForSalepointsRoutes);
+//
+app.use('/api/grossiste', catalogueSalepointRoutes);
+//
+
+
+// After other app.use() calls
+app.use('/api/grossiste', favorisRoutes);
 // Start the server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
